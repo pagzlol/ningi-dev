@@ -16,7 +16,7 @@ C:\Users\marsc\ningi.dev\
 
 | Repo | Purpose | Vault path |
 |------|---------|-----------|
-| `pagzlol/ningi-vault` *(new)* | The vault itself — notes, runbooks, stacks, incidents | vault root |
+| `pagzlol/ningi-vault` | The vault itself — notes, runbooks, stacks, incidents | vault root |
 | `pagzlol/ningi-homelab-ai-md` | Homelab infrastructure source of truth | `Homelab/ningi-homelab-ai-md/` |
 | `pagzlol/homelab-security-research` | Public incident writeups and portfolio | `Incidents/homelab-security-research/` |
 | `pagzlol/ningi-homelab-backup` | ❌ stays on argus — server-side cron backup only | not in vault |
@@ -25,38 +25,22 @@ C:\Users\marsc\ningi.dev\
 
 ## Setup Sequence
 
-Run from `C:\Users\marsc\ningi.dev` in Git Bash or PowerShell (with Git installed):
-
-### Step 1 — Initialise the vault repo
+> ✅ Completed 2026-04-17
 
 ```bash
 git init
 git remote add origin git@github.com:pagzlol/ningi-vault.git
-```
-
-### Step 2 — Remove the copied ningi-homelab-ai-md and replace with submodule
-
-```bash
-# Remove the static copy (content already committed to source repo)
-rm -rf Homelab/ningi-homelab-ai-md
-
-# Add as submodule
 git submodule add git@github.com:pagzlol/ningi-homelab-ai-md.git Homelab/ningi-homelab-ai-md
-```
-
-### Step 3 — Add security research repo as submodule
-
-```bash
 git submodule add git@github.com:pagzlol/homelab-security-research.git Incidents/homelab-security-research
-```
-
-### Step 4 — First commit and push
-
-```bash
 git add .
-git commit -m "init: vault with submodules"
-git push -u origin master
+git commit --amend -m "init: vault with submodules"
+git push -u origin master --force
 ```
+
+### Issues encountered during setup
+
+- `rm -rf` does not work in PowerShell — use `Remove-Item -Recurse -Force` or Git Bash
+- `.obsidian/plugins/mcp-tools/bin/mcp-server.exe` is 113MB, exceeds GitHub's 100MB limit — removed via `git rm --cached` and added to `.gitignore` before amending the commit
 
 ---
 
@@ -129,7 +113,7 @@ git push
 
 ## Why NOT ningi-homelab-backup in the vault?
 
-`ningi-homelab-backup` is a server-side operational backup — it runs via cron on argus at 02:00 daily, captures live host state (`docker ps`, `ss -tulpn`, etc.), and pushes to GitHub. It's not documentation — it's a snapshot of runtime state. Pulling it into the vault would create confusion between "what the system is" (source of truth) and "what the system was at 2am" (backup snapshot).
+`ningi-homelab-backup` is a server-side operational backup — runs via cron on argus at 02:00 daily, captures live host state (`docker ps`, `ss -tulpn`, etc.), pushes to GitHub. It's not documentation — it's a snapshot of runtime state. Pulling it into the vault would blur the line between "what the system is" (source of truth) and "what the system was at 2am" (backup snapshot).
 
 ---
 

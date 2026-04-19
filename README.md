@@ -28,8 +28,9 @@ Quick IPs:
 |------|---------------|
 | [[Stacks/Media-Stack]] | Plex, Sonarr, Radarr, Lidarr, Prowlarr, qBittorrent, SABnzbd — `~/arrrs/` |
 | [[Stacks/Wazuh-Stack]] | SIEM — manager, indexer, dashboard, realtime relay — `~/wazuh-docker/single-node/` |
-| [[Stacks/Monitoring-Stack]] | Grafana + OpenSearch dashboards — `~/infrastructure/` |
-| [[Stacks/Infrastructure-Stack]] | Nginx Proxy Manager, Watchtower — `~/infrastructure/` |
+| [[Stacks/Infrastructure-Stack]] | Nginx Proxy Manager, Grafana, Watchtower, Loki — `~/infrastructure/` |
+| [[Stacks/Loki-Stack]] | Log aggregation — Loki + Promtail across all hosts |
+| [[Stacks/n8n-Stack]] | Workflow automation — `~/n8n/` |
 
 ---
 
@@ -56,6 +57,7 @@ Quick IPs:
 | [[Runbooks/Fuji-Health-Check]] | Cowrie/Wazuh agent issues, recon stack issues |
 | [[Runbooks/Margo-1-Health-Check]] | Site down, Wazuh agent disconnected |
 | [[Runbooks/Docker-Stack-Recovery]] | Container crashed, stack won't start |
+| [[Runbooks/Docker-Migration]] | Move all stacks to `~/docker/` layout |
 | [[Runbooks/Wazuh-Troubleshooting]] | Agent disconnected, rules not firing |
 | [[Runbooks/Add-Wazuh-Agent]] | Adding a new host to Wazuh monitoring |
 | [[Runbooks/SSH-Hardening]] | Setting up SSH on a new host |
@@ -74,8 +76,9 @@ Quick IPs:
 
 | Note | What happened |
 |------|--------------|
-| [[Incidents/NINGI-WRITEUP-006]] | ZNC compromise → argus rebuild → current security baseline |
 | [[Incidents/Incident-Template]] | Template for documenting new incidents |
+
+Security research writeups live in the submodule at `Incidents/homelab-security-research/writeups/` — see that folder in Obsidian for all NINGI-WRITEUP-* entries.
 
 ---
 

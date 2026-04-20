@@ -13,11 +13,13 @@
 ├── arrrs/               (from ~/arrrs/)
 ├── infrastructure/      (from ~/infrastructure/)
 ├── n8n/                 (from ~/n8n/)
-└── wazuh/
-    └── single-node/     (from ~/wazuh-docker/single-node/)
-
-~/wazuh-docker/          stays — git-managed repo (Wazuh upstream)
+└── wazuh-docker/        (from ~/wazuh-docker/ — full repo moved)
+    └── single-node/
 ```
+
+> **As-built note:** The full `wazuh-docker/` repo was moved to `~/docker/wazuh-docker/`
+> (not `~/docker/wazuh/` as originally planned). All backup script paths use `wazuh-docker`.
+> Old `~/arrrs/` dir still on disk — was copied not moved; safe to `rm -rf ~/arrrs` once confirmed.
 
 ---
 
@@ -39,44 +41,51 @@ Fix: replace all four with `./config/npm/data`, `./config/npm/letsencrypt`, `./w
 
 ### 1.2 `restic-argus-backup.sh` — HIGH (will silently skip)
 
+**STATUS: DONE ✅** — updated 2026-04-20
+
 File: `~/ningi-homelab-backup/scripts/restic-argus-backup.sh`
 
-Update `BACKUP_PATHS` array:
+Current `BACKUP_PATHS` (as-built):
 
 ```bash
-# Old → New
-/home/t/arrrs/.env                               → /home/t/docker/arrrs/.env
-/home/t/arrrs/docker-compose.yml                 → /home/t/docker/arrrs/docker-compose.yml
-/home/t/arrrs/config                             → /home/t/docker/arrrs/config
-/home/t/infrastructure/docker-compose.yml        → /home/t/docker/infrastructure/docker-compose.yml
-/home/t/infrastructure                           → /home/t/docker/infrastructure
-/home/t/wazuh-docker/single-node/.env            → /home/t/docker/wazuh/single-node/.env
-/home/t/wazuh-docker/single-node/config          → /home/t/docker/wazuh/single-node/config
-/home/t/wazuh-docker/single-node/docker-compose.yml → /home/t/docker/wazuh/single-node/docker-compose.yml
+/home/t/docker/arrrs/.env
+/home/t/docker/arrrs/docker-compose.yml
+/home/t/docker/arrrs/config
+/home/t/docker/infrastructure/docker-compose.yml
+/home/t/docker/infrastructure
+/home/t/docker/wazuh-docker/.env
+/home/t/docker/wazuh-docker/single-node/.env
+/home/t/docker/wazuh-docker/single-node/config
+/home/t/docker/wazuh-docker/single-node/docker-compose.yml
 ```
 
-Note: `/home/t/wazuh-docker/.env` (repo root) stays — not moving that.
+All paths verified present on disk.
 
 ### 1.3 `backup.sh` (git backup) — MEDIUM (warns, doesn't fail hard)
 
+**STATUS: DONE ✅** — updated 2026-04-20
+
 File: `~/ningi-homelab-backup/scripts/backup.sh`, function `backup_local_configs()`
 
-Update 5 `backup_file` source paths:
+Current paths (as-built, wazuh uses `wazuh-docker` not `wazuh`):
 
 ```bash
-# Old                                                        → New
-"$LOCAL_HOME/wazuh-docker/single-node/docker-compose.yml"  → "$LOCAL_HOME/docker/wazuh/single-node/docker-compose.yml"
-"$LOCAL_HOME/wazuh-docker/single-node/.env"                 → "$LOCAL_HOME/docker/wazuh/single-node/.env"
-"$LOCAL_HOME/wazuh-docker/.env"                             # stays (repo root, not moving)
-"$LOCAL_HOME/infrastructure/docker-compose.yml"             → "$LOCAL_HOME/docker/infrastructure/docker-compose.yml"
-"$LOCAL_HOME/arrrs/docker-compose.yml"                      → "$LOCAL_HOME/docker/arrrs/docker-compose.yml"
-"$LOCAL_HOME/arrrs/.env"                                    → "$LOCAL_HOME/docker/arrrs/.env"
+"$LOCAL_HOME/docker/wazuh-docker/single-node/docker-compose.yml"  → wazuh/single-node/docker-compose.yml
+"$LOCAL_HOME/docker/wazuh-docker/multi-node/docker-compose.yml"   → wazuh/multi-node/docker-compose.yml
+"$LOCAL_HOME/docker/wazuh-docker/.env"                            → wazuh/.env
+"$LOCAL_HOME/docker/wazuh-docker/single-node/.env"                → wazuh/single-node/.env
+"$LOCAL_HOME/docker/infrastructure/docker-compose.yml"            → infrastructure/docker-compose.yml
+"$LOCAL_HOME/docker/arrrs/docker-compose.yml"                     → arrrs/docker-compose.yml
+"$LOCAL_HOME/docker/arrrs/.env"                                   → arrrs/.env
+"$LOCAL_HOME/docker/n8n/docker-compose.yml"                       → n8n/docker-compose.yml
 ```
 
-### 1.4 Docker Networks — SAFE
+Dry-run clean — zero WARNs for any docker paths.
+
+### 1.4 Docker Networks — SAFE ✅
 
 - `homelab` — manually created external network, unaffected by folder moves
-- `single-node_default` — auto-named from directory name `single-node/`; directory keeps that name under `~/docker/wazuh/single-node/`, so network name is unchanged. Grafana's cross-stack reference in `infrastructure/docker-compose.yml` stays valid.
+- `single-node_default` — auto-named from directory name `single-node/`; directory kept that name under `~/docker/wazuh-docker/single-node/`, so network name unchanged. Grafana's cross-stack reference valid.
 
 ### 1.5 Wazuh SSL certs / config — SAFE
 
@@ -105,6 +114,7 @@ All cron entries point to `~/bin/`, `~/ningi-homelab-backup/`, `~/recon/` — no
 NPM `:80`/`:443` are the only services that must keep `0.0.0.0` binding.
 All other `192.168.0.155:*` bindings can be removed.
 
+<<<<<<< HEAD
 | Service                        | Current         | Action                    |
 | ------------------------------ | --------------- | ------------------------- |
 | nginx_proxy_manager `:80/:443` | `0.0.0.0`       | **Keep** — public ingress |
@@ -122,98 +132,75 @@ All other `192.168.0.155:*` bindings can be removed.
 | Wazuh dashboard `:8443`        | `100.105.93.66` | Keep                      |
 | wazuh.indexer `:9200`          | `127.0.0.1`     | Already correct           |
 | n8n `:5678`                    | No host binding | Already correct           |
+=======
+| Service | Current | Action |
+|---|---|---|
+| nginx_proxy_manager `:80/:443` | `0.0.0.0` | **Keep** — public ingress |
+| nginx_proxy_manager `:81` | `100.105.93.66` | Keep |
+| Grafana `:3000` | Tailscale + LAN | Drop `192.168.0.155` |
+| Seerr `:5055` | Tailscale + LAN | Drop `192.168.0.155` |
+| qBittorrent `:8080` | Tailscale + LAN | Drop `192.168.0.155` |
+| qBittorrent `:6881` | `192.168.0.155` | **Keep** — torrent peers need LAN reachability |
+| SABnzbd `:8085` | Tailscale + LAN | Drop `192.168.0.155` |
+| Sonarr `:8989` | Tailscale + LAN | Drop `192.168.0.155` |
+| Radarr `:7878` | Tailscale + LAN | Drop `192.168.0.155` |
+| Prowlarr `:9696` | Tailscale + LAN | Drop `192.168.0.155` |
+| Lidarr `:8686` | Tailscale + LAN | Drop `192.168.0.155` |
+| Wazuh manager `:1514/:1515` | `100.105.93.66` | Keep (agent enrollment) |
+| Wazuh dashboard `:8443` | `100.105.93.66` | Keep |
+| wazuh.indexer `:9200` | `127.0.0.1` | Already correct |
+| n8n `:5678` | No host binding | Already correct |
+>>>>>>> origin/master
 
 ---
 
 ## Section 3 — Execution Order
 
-### Phase 0 — Pre-flight edits (no downtime, do first)
+### Phase 0 — Pre-flight edits ✅ DONE
 
-- [ ] Fix `~/infrastructure/docker-compose.yml`: change 4 NPM volume paths to relative
-- [ ] Validate: `cd ~/infrastructure && docker compose config` (should parse cleanly)
-- [ ] Update `restic-argus-backup.sh` BACKUP_PATHS (8 paths)
-- [ ] Update `backup.sh` `backup_local_configs()` (5 `backup_file` source paths)
-- [ ] Create directory skeleton:
-  ```bash
-  mkdir -p ~/docker/wazuh ~/docker/arrrs ~/docker/infrastructure ~/docker/n8n
-  ```
+- [x] Fix `~/infrastructure/docker-compose.yml`: NPM volume paths updated to `~/docker/infrastructure/…` absolute (not relative per plan, but functional)
+- [x] Update `restic-argus-backup.sh` BACKUP_PATHS (2026-04-20)
+- [x] Update `backup.sh` `backup_local_configs()` (2026-04-20)
+- [x] Directory skeleton created
 
-### Phase 1 — Move arrrs
+### Phase 1 — Move arrrs ✅ DONE
 
-```bash
-cd ~/arrrs && docker compose down
-mv ~/arrrs ~/docker/arrrs
-cd ~/docker/arrrs && docker compose up -d
-docker compose ps
-```
+Stack active at `~/docker/arrrs/`. All 7 arr containers healthy on `homelab` network.
 
-Verify: qBittorrent, Sonarr, Radarr, Prowlarr, Lidarr, SABnzbd, Seerr all healthy.
+> Note: `~/arrrs/` old dir still on disk (was copied, not moved). Safe to remove:
+> ```bash
+> rm -rf ~/arrrs
+> ```
 
-### Phase 2 — Move n8n
+### Phase 2 — Move n8n ✅ DONE
 
-```bash
-cd ~/n8n && docker compose down
-mv ~/n8n ~/docker/n8n
-cd ~/docker/n8n && docker compose up -d
-docker compose ps
-```
+Stack active at `~/docker/n8n/`. n8n accessible at https://n8n.ningi.dev.
 
-Verify: n8n reachable via https://n8n.ningi.dev
+### Phase 3 — Move infrastructure (NPM + Grafana + Watchtower) ✅ DONE
 
-### Phase 3 — Move infrastructure (NPM + Grafana + Watchtower)
+Stack active at `~/docker/infrastructure/`. NPM, Grafana, Watchtower all running.
 
-Longest downtime — NPM going down takes all proxy routes offline.
+### Phase 4 — Move Wazuh ✅ DONE
 
-```bash
-cd ~/infrastructure && docker compose down
-mv ~/infrastructure ~/docker/infrastructure
-cd ~/docker/infrastructure && docker compose up -d
-docker compose ps
-```
+> **As-built:** entire `~/wazuh-docker/` moved to `~/docker/wazuh-docker/` (not `~/docker/wazuh/` as planned).
 
-Verify:
-- NPM admin UI accessible at http://100.105.93.66:81
-- Grafana accessible at http://100.105.93.66:3000
-- Proxy hosts still resolving (spot-check ningi.dev, seerr.ningi.dev, n8n.ningi.dev)
+Stack active at `~/docker/wazuh-docker/single-node/`. All 3 Wazuh containers up, all 4 agents Active.
 
-### Phase 4 — Move Wazuh single-node (most sensitive, do last)
+Network `single-node_default` and `single-node_wazuh-net` both present — Grafana connectivity confirmed.
 
-```bash
-cd ~/wazuh-docker/single-node && docker compose down
-mkdir -p ~/docker/wazuh
-mv ~/wazuh-docker/single-node ~/docker/wazuh/single-node
-cd ~/docker/wazuh/single-node && docker compose up -d
-```
+### Phase 5 — Port binding cleanup ✅ DONE
 
-Verify:
-```bash
-docker compose ps
-docker network ls | grep single-node   # must show single-node_default
-# Confirm Grafana still reaches wazuh.indexer after infrastructure restart if needed
-```
+All `192.168.0.155:*` WebUI bindings removed. All services Tailscale-only.
+qBittorrent `:6881` intentionally kept on `192.168.0.155` for torrent peer reachability.
 
-If Grafana lost its wazuh.indexer connection (single-node_default was briefly gone):
-```bash
-cd ~/docker/infrastructure && docker compose restart grafana
-```
-
-### Phase 5 — Port binding cleanup
-
-After all stacks verified, edit compose files to remove `192.168.0.155:*` lines, then:
-
-```bash
-cd ~/docker/arrrs       && docker compose up -d   # Compose recreates only changed containers
-cd ~/docker/infrastructure && docker compose up -d
-```
-
-Wazuh bindings are already Tailscale-only — no change needed there.
-
-### Phase 6 — Post-move backup test
+### Phase 6 — Post-move backup test ✅ DONE (2026-04-20)
 
 ```bash
 cd ~/ningi-homelab-backup && BACKUP_ENV_FILE=~/ningi-homelab-backup/.backup.env ./scripts/backup.sh --dry
-# Should show zero [WARN] lines for docker paths
 ```
+
+Result: zero WARNs for docker migration paths. Four pre-existing WARNs for unrelated scripts
+(`argus_digest.py`, `argus_status.py`, `requirements-argus.txt`, `argus-bot.service`).
 
 ---
 

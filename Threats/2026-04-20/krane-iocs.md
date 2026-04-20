@@ -6,11 +6,22 @@ tags:
   - ioc
   - threat/botnet
   - threat/brute-force
+  - threat/cryptominer
+  - threat/monero
 ---
 
 # Krane Botnet — Indicators of Compromise
 
 Reference: `krane-botnet-campaign.md`
+
+---
+
+## Cryptocurrency
+
+| Type | Value |
+|------|-------|
+| **Monero (XMR) wallet** | `46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9UgWtCGcrNQJKgTxGJ1TcndT3SLDNFnJvjo8LzjpX2uZL7aEtZiFrsGTLa` |
+| Miner tool | `vltrig` v6.25.0.4 (XMRig-family, HashVault) |
 
 ---
 
@@ -20,18 +31,19 @@ Reference: `krane-botnet-campaign.md`
 
 | IP               | Role              | Notes                              |
 |------------------|-------------------|------------------------------------|
-| `89.190.156.19`  | C2 / payload host | Serves bins.sh and all binaries    |
+| `89.190.156.19`  | C2 / payload host | Serves bins.sh and all krane/hoho binaries |
 | `89.190.156.34`  | Attack source     | Performed the honeypot compromise  |
 
 ### Domains
 
 | Domain                                | Type        | Notes                                            |
 |---------------------------------------|-------------|--------------------------------------------------|
-| `minecraftpixelger39clone.dedyn.io`   | C2 / module | Go module import path embedded in binary; dedyn.io dynamic DNS |
+| `minecraftpixelger39clone.dedyn.io`   | C2 / module | Go module host (`/kranenr` endpoint); dedyn.io dynamic DNS |
 
 ### URLs
 
 ```
+# C2 payload delivery
 http://89.190.156.19/bins.sh
 http://89.190.156.19/krane_armv5
 http://89.190.156.19/krane_armv6
@@ -50,6 +62,15 @@ http://89.190.156.19/bins/hoho.ppc
 http://89.190.156.19/bins/hoho.sh4
 http://89.190.156.19/bins/hoho.spc
 http://89.190.156.19/bins/hoho.x86
+
+# C2 module endpoint
+http://minecraftpixelger39clone.dedyn.io/kranenr
+
+# Miner download (GitHub CDN abuse)
+https://github.com/HashVault/vltrig/releases/download/v6.25.0.4/vltrig-v6.25.0.4-linux-x64.tar.gz
+
+# Bot self-IP discovery
+https://api.ipify.org?format=text
 ```
 
 ---
@@ -108,19 +129,48 @@ GET https://api.ipify.org?format=text
 
 ## Credentials Observed / Embedded
 
-| Credential Type | Values |
-|----------------|--------|
-| Attack entry password | `050602` |
-| Embedded wordlist fragments | `admin`, `root`, `user`, `pi`, `test`, `support`, `default`, `enable`, `system`, `ntp`, `123456`, `12345`, `888888`, `password`, `alpine` |
+### Entry Credential (used against honeypot)
+`root:050602`
+
+### Full Embedded Wordlist (extracted from binary)
+
+```
+root:root           root:1234           root:12345          root:123456
+root:Root123456     root:Root1234       root:1qaz@WSX       root:qwert
+root:Admin123       root:smoothwall
+admin:admin         admin:Admin123      admin:zaq12wsx
+test:test           test:123456         test:test123        test:1234567890
+user:123456         user2:77777777
+chia:chia           chia:chia123        chia:Chia123        chia:Chia123456
+chia:Test123        chia:Test1234       chia:Test123456     chia:Admin123
+chia:1qaz@WSX       chia:admin
+es:123456           es:es123
+odoo:odoo
+mysql:mysql
+postgres:postgres
+deployer:deployer   deploy:deploy
+jenkins:jenkins
+ftpuser:ftpuser
+ansible:ansible     ansible:Ansible123
+vagrant:vagrant
+hadoop:hadoop123    hadoop:123456
+oracle:oracle
+ubuntu:ubuntu       ubuntu:123456
+centos:centos
+nagios:nagios
+minecraft:minecraft
+azureuser:azureuser
+abbas:abbas         secrettom:321       tlqtest1:tlqtest1123
+```
 
 ---
 
-## Sigma Rule (draft)
+## Sigma Rules (draft)
 
 ```yaml
 title: Krane Botnet Dropper Activity
 status: experimental
-description: Detects krane botnet dropper execution pattern on Linux systems
+description: Detects krane botnet dropper and miner execution on Linux systems
 logsource:
   category: process_creation
   product: linux
@@ -147,6 +197,29 @@ tags:
   - attack.t1059.004
   - attack.lateral_movement
   - attack.t1110.001
+---
+title: Krane Botnet vltrig Miner Deployment
+status: experimental
+description: Detects XMRig-family miner (vltrig) deployed by krane botnet
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  selection_vltrig_process:
+    Image|endswith: '/vltrig'
+  selection_vltrig_args:
+    CommandLine|contains|all:
+      - '--donate-level 0'
+      - '--cpu-max-threads-hint'
+  selection_miner_wallet:
+    CommandLine|contains: '46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9UgWtCGcrNQJKgTxGJ'
+  condition: 1 of selection_*
+falsepositives:
+  - None expected
+level: critical
+tags:
+  - attack.impact
+  - attack.t1496
 ```
 
 ---
@@ -168,4 +241,13 @@ alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"Krane Botnet hoho Binary Dow
 
 # Self-IP lookup (bot fingerprint)
 alert dns $HOME_NET any -> any 53 (msg:"Krane Bot Self-IP Lookup"; dns.query; content:"api.ipify.org"; sid:9000005; rev:1;)
+
+# vltrig miner GitHub download
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"Krane Botnet vltrig Miner Download"; flow:established,to_server; http.uri; content:"/HashVault/vltrig/"; sid:9000006; rev:1;)
+
+# XMR wallet string in traffic (C2 mining registration)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"Krane Botnet XMR Wallet in Traffic"; content:"46qJM6LUpYjVPVS6CYRx3x9HpXboYd3gK5HBd9"; sid:9000007; rev:1;)
+
+# C2 module domain
+alert dns $HOME_NET any -> any 53 (msg:"Krane Botnet C2 Domain Lookup"; dns.query; content:"minecraftpixelger39clone.dedyn.io"; nocase; sid:9000008; rev:1;)
 ```

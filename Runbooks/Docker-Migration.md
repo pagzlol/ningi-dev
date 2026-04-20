@@ -105,23 +105,23 @@ All cron entries point to `~/bin/`, `~/ningi-homelab-backup/`, `~/recon/` — no
 NPM `:80`/`:443` are the only services that must keep `0.0.0.0` binding.
 All other `192.168.0.155:*` bindings can be removed.
 
-| Service | Current | Action |
-|---|---|---|
-| nginx_proxy_manager `:80/:443` | `0.0.0.0` | **Keep** — public ingress |
-| nginx_proxy_manager `:81` | `100.105.93.66` | Keep |
-| Grafana `:3000` | Tailscale + LAN | Drop `192.168.0.155` |
-| Seerr `:5055` | Tailscale + LAN | Drop `192.168.0.155` |
-| qBittorrent `:8080` | Tailscale + LAN | Drop `192.168.0.155` |
-| qBittorrent `:6881` | Tailscale + LAN | Drop `192.168.0.155` |
-| SABnzbd `:8085` | Tailscale + LAN | Drop `192.168.0.155` |
-| Sonarr `:8989` | Tailscale + LAN | Drop `192.168.0.155` |
-| Radarr `:7878` | Tailscale + LAN | Drop `192.168.0.155` |
-| Prowlarr `:9696` | Tailscale + LAN | Drop `192.168.0.155` |
-| Lidarr `:8686` | Tailscale + LAN | Drop `192.168.0.155` |
-| Wazuh manager `:1514/:1515` | `100.105.93.66` | Keep (agent enrollment) |
-| Wazuh dashboard `:8443` | `100.105.93.66` | Keep |
-| wazuh.indexer `:9200` | `127.0.0.1` | Already correct |
-| n8n `:5678` | No host binding | Already correct |
+| Service                        | Current         | Action                    |
+| ------------------------------ | --------------- | ------------------------- |
+| nginx_proxy_manager `:80/:443` | `0.0.0.0`       | **Keep** — public ingress |
+| nginx_proxy_manager `:81`      | `100.105.93.66` | Keep                      |
+| Grafana `:3000`                | Tailscale + LAN | Drop `192.168.0.155`      |
+| Seerr `:5055`                  | Tailscale + LAN | Drop `192.168.0.155`      |
+| qBittorrent `:8080`            | Tailscale + LAN | Drop `192.168.0.155`      |
+| qBittorrent `:6881`            | Tailscale + LAN | Drop `192.168.0.155`      |
+| SABnzbd `:8085`                | Tailscale + LAN | Drop `192.168.0.155`      |
+| Sonarr `:8989`                 | Tailscale + LAN | Drop `192.168.0.155`      |
+| Radarr `:7878`                 | Tailscale + LAN | Drop `192.168.0.155`      |
+| Prowlarr `:9696`               | Tailscale + LAN | Drop `192.168.0.155`      |
+| Lidarr `:8686`                 | Tailscale + LAN | Drop `192.168.0.155`      |
+| Wazuh manager `:1514/:1515`    | `100.105.93.66` | Keep (agent enrollment)   |
+| Wazuh dashboard `:8443`        | `100.105.93.66` | Keep                      |
+| wazuh.indexer `:9200`          | `127.0.0.1`     | Already correct           |
+| n8n `:5678`                    | No host binding | Already correct           |
 
 ---
 

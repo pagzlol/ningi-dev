@@ -49,18 +49,18 @@ Wazuh pipeline is **unchanged**. These are two independent ingestion paths.
 
 ## Stack Location
 
-| Component | Path | Host |
-|-----------|------|------|
-| Loki container | `~/infrastructure/docker-compose.yml` | argus |
-| Loki config | `~/infrastructure/loki/config.yml` | argus |
-| Argus promtail config | `~/infrastructure/promtail/config.yml` | argus |
-| Grafana Loki datasource | `~/infrastructure/grafana/provisioning/datasources/loki.yml` | argus |
-| Fuji promtail config | `/etc/promtail/config.yml` | fuji |
-| Fuji promtail binary | `/usr/local/bin/promtail` | fuji |
-| Fuji systemd unit | `/etc/systemd/system/promtail.service` | fuji |
-| Margo-1 promtail config | `/etc/promtail/config.yml` | margo-1 |
-| Margo-1 promtail binary | `/usr/local/bin/promtail` | margo-1 |
-| Margo-1 systemd unit | `/etc/systemd/system/promtail.service` | margo-1 |
+| Component               | Path                                                                | Host    |
+| ----------------------- | ------------------------------------------------------------------- | ------- |
+| Loki container          | `~/docker/infrastructure/docker-compose.yml`                        | argus   |
+| Loki config             | `~/docker/infrastructure/loki/config.yml`                           | argus   |
+| Argus promtail config   | `~/docker/infrastructure/promtail/config.yml`                       | argus   |
+| Grafana Loki datasource | `~/docker/infrastructure/grafana/provisioning/datasources/loki.yml` | argus   |
+| Fuji promtail config    | `/etc/promtail/config.yml`                                          | fuji    |
+| Fuji promtail binary    | `/usr/local/bin/promtail`                                           | fuji    |
+| Fuji systemd unit       | `/etc/systemd/system/promtail.service`                              | fuji    |
+| Margo-1 promtail config | `/etc/promtail/config.yml`                                          | margo-1 |
+| Margo-1 promtail binary | `/usr/local/bin/promtail`                                           | margo-1 |
+| Margo-1 systemd unit    | `/etc/systemd/system/promtail.service`                              | margo-1 |
 
 ---
 
@@ -74,7 +74,7 @@ sudo ufw allow in on tailscale0 to any port 3100 proto tcp comment "Loki ingesti
 
 ### 2. Argus — Loki config
 
-Create `~/infrastructure/loki/config.yml`:
+Create `~/docker/infrastructure/loki/config.yml`:
 
 ```yaml
 auth_enabled: false
@@ -122,7 +122,7 @@ limits_config:
 
 ### 3. Argus — Promtail config
 
-Create `~/infrastructure/promtail/config.yml`:
+Create `~/docker/infrastructure/promtail/config.yml`:
 
 ```yaml
 server:
@@ -177,7 +177,7 @@ scrape_configs:
         replacement: argus
 ```
 
-### 4. Argus — Add to `~/infrastructure/docker-compose.yml`
+### 4. Argus — Add to `~/docker/infrastructure/docker-compose.yml`
 
 ```yaml
   loki:
@@ -209,7 +209,7 @@ Add to the `volumes:` block at the bottom:
 
 ### 5. Argus — Grafana Loki datasource
 
-Create `~/infrastructure/grafana/provisioning/datasources/loki.yml`:
+Create `~/docker/infrastructure/grafana/provisioning/datasources/loki.yml`:
 
 ```yaml
 apiVersion: 1
@@ -229,7 +229,7 @@ datasources:
 ### 6. Argus — Deploy
 
 ```bash
-cd ~/infrastructure
+cd ~/docker/infrastructure
 docker compose up -d loki promtail
 docker compose restart grafana   # pick up new datasource provisioning
 ```

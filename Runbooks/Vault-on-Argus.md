@@ -1,4 +1,4 @@
-# Runbook — Vault Clone on Argus
+          # Runbook — Vault Clone on Argus
 
 > Gives Claude Code on argus direct read/write access to the vault as plain files. No Obsidian, no REST API, no laptop required. Changes push to GitHub; Obsidian Git on the laptop pulls them on next sync.
 

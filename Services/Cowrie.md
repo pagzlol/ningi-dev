@@ -75,7 +75,7 @@ Each event is a JSON object on its own line (JSONL format). Common event types:
 
 ## Wazuh Integration
 
-Cowrie logs are shipped to Wazuh via the fuji agent (ID 002). Events are parsed via syslog. Custom rules 100710–100713 handle different event types.
+Cowrie logs are shipped to Wazuh via the fuji agent (ID 007). Events are parsed via syslog. Custom rules 100710–100713 handle different event types.
 
 > **Important:** Rules 100710–100713 are syslog-parsed — Wazuh does not extract `data.srcip` for these events. Source IPs live in `full_log` text only.
 
@@ -163,6 +163,24 @@ Cowrie is excellent for practising:
 - **Threat intelligence** — correlating attacker IPs with known infrastructure
 - **Detection engineering** — writing Wazuh rules for attack patterns seen in real logs
 - **Incident reporting** — writing up attacker TTPs in structured format
+
+---
+
+## Cowrie Autoblock
+
+When an attacker runs a command matching a documented campaign signature, Wazuh active response fires `cowrie-autoblock` on all three agents simultaneously.
+
+| Item | Value |
+|------|-------|
+| Trigger | Wazuh rule 100704 (`cowrie.command.input`) |
+| Agents | 001 (argus), 005 (margo-1), 007 (fuji) |
+| Signatures | `/var/lib/cowrie-blocklist/signatures/*.yml` on each host |
+| Effect | Attacker IP blocked on all three hosts |
+| Log | `/var/log/cowrie-autoblock.log` |
+| Deploy | `sudo bash ~/scripts/cowrie-blocklist/deploy-ar.sh` on argus |
+| Auto-deploy | ningi-vault post-commit hook fires on `campaign-signatures/` changes |
+
+See [[Stacks/Wazuh-Stack]] for manager config details.
 
 ---
 

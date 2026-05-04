@@ -144,8 +144,9 @@ grep -n "rule_dir" ~/wazuh-docker/single-node/config/wazuh_cluster/wazuh_manager
 | ID | Host | Role |
 |----|------|------|
 | 001 | argus (local) | Primary homelab host |
-| 002 | fuji | Honeypot / remote node |
-| 004 | margo-1 | GCP portfolio site |
+| 005 | margo-1 | GCP portfolio site |
+| 007 | fuji | Honeypot / remote node |
+| 008 | macbookwin11 | Windows workstation |
 
 ---
 

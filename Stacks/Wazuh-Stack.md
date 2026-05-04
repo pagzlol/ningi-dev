@@ -19,13 +19,13 @@ Without a SIEM, a security event on fuji just sits in a log file nobody reads. W
 
 | Component | Path |
 |-----------|------|
-| Docker compose | `~/wazuh-docker/single-node/docker-compose.yml` |
-| Manager config | `~/wazuh-docker/single-node/config/wazuh_cluster/wazuh_manager.conf` |
-| Custom rules | `~/wazuh-docker/single-node/config/wazuh_cluster/local_rules.xml` |
-| Custom decoders | `~/wazuh-docker/single-node/config/wazuh_cluster/local_decoder.xml` |
-| Custom auditd rules | `~/wazuh-docker/single-node/config/wazuh_cluster/local_auditd_rules.xml` |
-| Dashboard config | `~/wazuh-docker/single-node/config/wazuh_dashboard/wazuh.yml` |
-| Certs | `~/wazuh-docker/single-node/config/wazuh_indexer_ssl_certs/` |
+| Docker compose | `~/docker/wazuh-docker/single-node/docker-compose.yml` |
+| Manager config | `~/docker/wazuh-docker/single-node/config/wazuh_cluster/wazuh_manager.conf` |
+| Custom rules | `~/docker/wazuh-docker/single-node/config/wazuh_cluster/local_rules.xml` |
+| Custom decoders | `~/docker/wazuh-docker/single-node/config/wazuh_cluster/local_decoder.xml` |
+| Custom auditd rules | `~/docker/wazuh-docker/single-node/config/wazuh_cluster/local_auditd_rules.xml` |
+| Dashboard config | `~/docker/wazuh-docker/single-node/config/wazuh_dashboard/wazuh.yml` |
+| Certs | `~/docker/wazuh-docker/single-node/config/wazuh_indexer_ssl_certs/` |
 
 ---
 
@@ -46,7 +46,7 @@ NINGI//LAB runs Wazuh in **single-node** mode — manager, indexer, and dashboar
 └──────────────────────────────────────────────────────────────────┘
           ▲                  ▲
           │                  │
-   fuji agent 002      margo-1 agent 004
+   fuji agent 007      margo-1 agent 005
 ```
 
 ---
@@ -67,8 +67,9 @@ Web UI at `:8443` (Tailscale only). Provides alert browsing, agent management, a
 | Agent ID | Host | Status |
 |----------|------|--------|
 | 001 | argus (local) | Active |
-| 002 | fuji | Active |
-| 004 | margo-1 | Active |
+| 005 | margo-1 | Active |
+| 007 | fuji | Active |
+| 008 | macbookwin11 | Active |
 
 All agents connect to manager at `100.105.93.66` over Tailscale.
 
@@ -100,6 +101,7 @@ How an event becomes a Discord alert:
 | Range | Purpose |
 |-------|---------|
 | 100200–100201 | Honeytoken access (fuji) — Level 15 |
+| 100704 | Cowrie command input — triggers `cowrie-autoblock` active response |
 | 100710–100713 | Cowrie syslog events (parsed from fuji syslog, no structured field extraction — `data.srcip` not available) |
 | 100500–100506 | auditd / exec monitoring |
 
@@ -169,6 +171,25 @@ Custom auditd child rules using `<if_sid>` were not firing because Wazuh's built
 
 ---
 
+## Active Response — Cowrie Autoblock
+
+When rule 100704 fires (`cowrie.command.input` matching a campaign signature), the manager pushes `cowrie-autoblock` to all three agents simultaneously.
+
+| Item | Value |
+|------|-------|
+| Trigger rule | 100704 |
+| Agents targeted | 001 (argus), 005 (margo-1), 007 (fuji) |
+| AR script path | `/var/ossec/active-response/bin/cowrie-autoblock` on each agent host |
+| Signatures | `/var/lib/cowrie-blocklist/signatures/*.yml` on each agent host |
+| Campaign source | `~/ningi-vault/Incidents/homelab-security-research/campaign-signatures/` |
+| Deploy script | `sudo bash ~/scripts/cowrie-blocklist/deploy-ar.sh` on argus |
+| Auto-deploy | ningi-vault post-commit hook on `campaign-signatures/` changes |
+| Log | `/var/log/cowrie-autoblock.log` on each host |
+
+> **Config persistence gotcha:** the Wazuh container merges `wazuh_manager.conf` (bind-mount) into the running `ossec.conf` on startup. Always edit `wazuh_manager.conf` — not the in-container path. After editing, use `docker cp` to sync into the running container then send `SIGHUP` to `wazuh-analysisd`. Do **not** use `wazuh-control reload` — it re-processes from the mount and overwrites any direct patches.
+
+---
+
 ## Grafana Integration
 
 Grafana on argus (`:3000`) uses OpenSearch as a datasource to visualise Wazuh data:
@@ -208,7 +229,7 @@ Everything (manager, indexer, dashboard) runs on one host. Fine for a homelab bu
 ## Restart Commands
 
 ```bash
-cd ~/wazuh-docker/single-node && docker compose up -d
+cd ~/docker/wazuh-docker/single-node && docker compose up -d
 sudo systemctl restart wazuh-agent
 sudo systemctl restart wazuh-realtime
 ```

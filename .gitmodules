@@ -1,6 +1,0 @@
-[submodule "Homelab/ningi-homelab-ai-md"]
-	path = Homelab/ningi-homelab-ai-md
-	url = git@github.com:pagzlol/ningi-homelab-ai-md.git
-[submodule "Incidents/homelab-security-research"]
-	path = Incidents/homelab-security-research
-	url = git@github.com:pagzlol/homelab-security-research.git

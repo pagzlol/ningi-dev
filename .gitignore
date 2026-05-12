@@ -1,7 +1,0 @@
-# Obsidian internals
-.smart-env/
-.obsidian/workspace.json
-.obsidian/plugins/*/data.json
-
-# Large plugin binaries
-.obsidian/plugins/mcp-tools/bin/

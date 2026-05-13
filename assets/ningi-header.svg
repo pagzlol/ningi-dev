@@ -51,9 +51,9 @@
   </g>
 
   <g opacity="0.98">
-    <text x="108" y="206" fill="#F2FAFF" font-family="Segoe UI, Arial, sans-serif" font-size="68" font-weight="700">ningi.dev</text>
-    <text x="108" y="262" fill="#7BDFFF" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="2">HOMELAB SECURITY RESEARCH</text>
+    <text x="108" y="206" fill="#F2FAFF" font-family="Segoe UI, Arial, sans-serif" font-size="68" font-weight="700">Ningi Detection Lab</text>
+    <text x="108" y="262" fill="#7BDFFF" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="2">LIVE SECURITY RESEARCH LAB</text>
     <text x="108" y="320" fill="#B3D3E2" font-family="Segoe UI, Arial, sans-serif" font-size="28">detections, honeypots, attack-surface monitoring, incident response</text>
-    <text x="108" y="370" fill="#89AFC1" font-family="Segoe UI, Arial, sans-serif" font-size="24">built from a live lab, rebuilt with a paranoid mindset</text>
+    <text x="108" y="370" fill="#89AFC1" font-family="Segoe UI, Arial, sans-serif" font-size="24">www.ningi.dev | troy@ningi.dev | detections, tooling, and lessons</text>
   </g>
 </svg>

@@ -63,7 +63,7 @@
 
       <section class="metrics" aria-label="Portfolio summary">
         <div>
-          <strong>14</strong>
+          <strong>17</strong>
           <span>technical writeups</span>
         </div>
         <div>
@@ -110,6 +110,27 @@
         </div>
 
         <div class="work-grid">
+          <article class="work-card" data-category="honeypot detection">
+            <span class="tag">Threat intel</span>
+            <h3>Telegram session cloning, SMS OTP interception, MikroTik probe</h3>
+            <p>Nine-stage recon sequence, one command per session. Checks for Telegram tdata to clone accounts without passwords, SMS modem hardware for OTP intercept, and MikroTik RouterOS devices.</p>
+            <a href="https://github.com/pagzlol/homelab-security-research/blob/main/writeups/NINGI-WRITEUP-013-telegram-sms-mikrotik-asset-theft-probe.md">Read NINGI-WRITEUP-013</a>
+          </article>
+
+          <article class="work-card" data-category="honeypot detection">
+            <span class="tag">Honeypot</span>
+            <h3>Hex-encoded credential validator and the May 17 surge</h3>
+            <p>4,629 sessions from a single IP each running echo -e "\x6F\x6B" — hex for "ok" — to confirm valid credentials without triggering string-match rules. A second branch collected uname -a from 972 targets the same day.</p>
+            <a href="https://github.com/pagzlol/homelab-security-research/blob/main/writeups/NINGI-WRITEUP-014-hex-encoded-credential-validator-may17-surge.md">Read NINGI-WRITEUP-014</a>
+          </article>
+
+          <article class="work-card" data-category="malware honeypot">
+            <span class="tag">Malware</span>
+            <h3>mdrfckr wave 3 — rotating passwords and toolset split</h3>
+            <p>The shared static root password is gone. Wave 3 generates a unique one per session, removing the cross-host forensic correlator. A second node variant running libssh 0.9.6 adds a second HASSH to avoid wave 2 blocks.</p>
+            <a href="https://github.com/pagzlol/homelab-security-research/blob/main/writeups/NINGI-WRITEUP-015-mdrfckr-wave3-rotating-passwords-libssh-divergence.md">Read NINGI-WRITEUP-015</a>
+          </article>
+
           <article class="work-card" data-category="honeypot detection">
             <span class="tag">Honeypot</span>
             <h3>Go dual-branch scanner with Solana targeting</h3>

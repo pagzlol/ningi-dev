@@ -26,6 +26,8 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+    <img id="bg-image" src="assets/portfolio-hero.png" alt="" fetchpriority="high" aria-hidden="true">
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
@@ -43,9 +45,6 @@
 
     <main id="main">
       <section class="hero" aria-labelledby="hero-title">
-        <picture class="hero-media">
-          <img src="assets/portfolio-hero.png" alt="" fetchpriority="high">
-        </picture>
         <div class="hero-scrim"></div>
         <div class="hero-content">
           <p class="eyebrow">Live security research lab</p>
@@ -107,9 +106,17 @@
           <button class="filter" type="button" data-filter="malware">Malware</button>
           <button class="filter" type="button" data-filter="incident">Incident</button>
           <button class="filter" type="button" data-filter="detection">Detection</button>
+          <button class="filter" type="button" data-filter="disclosure">Disclosure</button>
         </div>
 
         <div class="work-grid">
+          <article class="work-card" data-category="disclosure">
+            <span class="tag">Disclosure</span>
+            <h3>Eggdrop python.mod — crash on malformed Tcl list, fixed upstream</h3>
+            <p>A missing <code>return NULL</code> in <code>py_parse_tcl_list()</code> turns a recoverable parse error into an uncatchable segfault. Found, reduced to a one-character repro, reported to eggheads. Fixed as commit 3524000 — first upstream contribution to a 25-year-old codebase.</p>
+            <a href="https://github.com/pagzlol/homelab-security-research/blob/main/writeups/NINGI-WRITEUP-017-eggdrop-python-mod-parse-tcl-list-crash.md">Read NINGI-WRITEUP-017</a>
+          </article>
+
           <article class="work-card" data-category="honeypot detection">
             <span class="tag">Threat intel</span>
             <h3>Telegram session cloning, SMS OTP interception, MikroTik probe</h3>

@@ -1,5 +1,12 @@
 const filterButtons = document.querySelectorAll("[data-filter]");
 const workCards = document.querySelectorAll(".work-card");
+const workGrid = document.querySelector(".work-grid");
+
+function updateGridColumns() {
+  const visible = [...workCards].filter((c) => !c.hidden).length;
+  const cols = Math.min(visible, 3);
+  workGrid.style.gridTemplateColumns = cols > 0 ? `repeat(${cols}, minmax(0, 1fr))` : "";
+}
 
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -12,6 +19,7 @@ filterButtons.forEach((button) => {
       const shouldShow = activeFilter === "all" || categories.includes(activeFilter);
       card.hidden = !shouldShow;
     });
+    updateGridColumns();
   });
 });
 

@@ -62,11 +62,11 @@
 
       <section class="metrics" aria-label="Portfolio summary">
         <div>
-          <strong>17</strong>
+          <strong>19</strong>
           <span>technical writeups</span>
         </div>
         <div>
-          <strong>4</strong>
+          <strong>5</strong>
           <span>security findings</span>
         </div>
         <div>
@@ -110,6 +110,13 @@
         </div>
 
         <div class="work-grid">
+          <article class="work-card" data-category="disclosure">
+            <span class="tag">Disclosure</span>
+            <h3>Quad Lock CarPlay adaptor — unsigned firmware, inverted trust model</h3>
+            <p>The adaptor never talks to the vendor itself — the phone's browser fetches firmware and hands it over. No signing, MD5-only integrity checked against a hash served by the same plaintext channel as the firmware. Private disclosure sent to the vendor; infrastructure details redacted here pending response.</p>
+            <a href="https://github.com/pagzlol/homelab-security-research/blob/main/writeups/NINGI-WRITEUP-019-quadlock-carplay-adaptor-ota-disclosure.md">Read NINGI-WRITEUP-019</a>
+          </article>
+
           <article class="work-card" data-category="disclosure">
             <span class="tag">Disclosure</span>
             <h3>Eggdrop python.mod — crash on malformed Tcl list, fixed upstream</h3>
